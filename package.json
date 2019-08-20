@@ -1,0 +1,78 @@
+{
+  "name": "@threads/apollo-resolver-types",
+  "description": "Strong typing for apollo resolvers",
+  "main": "lib/index.js",
+  "bin": {
+    "apollo-resolver-types": "./lib/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "tslint './src/**/*.{ts,tsx}' -t verbose -p .",
+    "prettier:write": "prettier --ignore-path .gitignore --write './**/*.{md,json,yml,js,jsx,ts,tsx}'",
+    "prettier:check": "prettier --ignore-path .gitignore --list-different './**/*.{md,json,yml,js,jsx,ts,tsx}'",
+    "test": "rimraf example/node_modules && rimraf example/lib && rimraf example/src/graphql/__generated__ && cd example && yarn schema && yarn && yarn build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThreadsStyling/apollo-resolver-types.git"
+  },
+  "license": "UNLICENSED",
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "prettier --write",
+      "tslint -t verbose -p .",
+      "git add"
+    ],
+    "example/**/*.{ts,tsx}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.{md,json,yml,js,jsx}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^8.1.0",
+    "@threads/tsconfig": "^1.0.0",
+    "@types/js-yaml": "^3.12.1",
+    "@types/koa": "^2.0.49",
+    "@types/koa-compress": "^2.0.9",
+    "@types/koa-mount": "^4.0.0",
+    "@types/mkdirp": "^0.5.2",
+    "@types/ms": "^0.7.30",
+    "apollo-server-koa": "^2.8.1",
+    "graphql": "^14.4.2",
+    "husky": "^3.0.4",
+    "koa": "^2.8.1",
+    "koa-compress": "^3.0.0",
+    "koa-mount": "^4.0.0",
+    "lint-staged": "^9.2.3",
+    "prettier": "^1.18.2",
+    "rimraf": "^3.0.0",
+    "tslint": "^5.18.0",
+    "type-assertions": "^1.1.0",
+    "typescript": "^3.5.3"
+  },
+  "peerDependencies": {
+    "apollo-server-koa": "^2.8.1",
+    "graphql": "^14.4.2"
+  },
+  "dependencies": {
+    "graphql-code-generator": "^0.18.2",
+    "graphql-codegen-add": "^0.18.2",
+    "graphql-codegen-schema-ast": "^0.18.2",
+    "graphql-codegen-typescript-common": "^0.18.2",
+    "graphql-codegen-typescript-resolvers": "^0.18.2",
+    "graphql-codegen-typescript-server": "^0.18.2",
+    "js-yaml": "^3.13.1",
+    "mkdirp": "^0.5.1",
+    "ms": "^2.1.2"
+  }
+}

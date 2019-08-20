@@ -1,0 +1,32 @@
+# Config for graphql-code-generator
+
+schema: ./schema.graphql
+overwrite: true
+generates:
+  ./__generated__/types.ts:
+    plugins:
+      - add: '/* tslint:disable */'
+      - add: '// This file was automatically generated and should not be edited.'
+      - add: import ResolverContext from '../ResolverContext';
+      - add: import * as Scalars from '../scalars';
+      - typescript-common
+      - typescript-server
+      - typescript-resolvers
+    config:
+      contextType: ResolverContext
+      scalars:
+        GooglePerson: Scalars.GooglePerson
+        TrimmedString: string
+      enums:
+        AccountType: ../scalars#AccountType
+      mappers:
+        Account: ../types#Account
+        Contact: ../types#Contact
+  ./__generated__/schema.ts:
+    plugins:
+      - add: '/* tslint:disable */'
+      - add: '// This file was automatically generated and should not be edited.'
+      - add: "import {gql} from 'apollo-server-koa';"
+      - add: 'export default gql`'
+      - schema-ast
+      - add: '`;'
