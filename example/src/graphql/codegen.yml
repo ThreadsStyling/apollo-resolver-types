@@ -5,28 +5,34 @@ overwrite: true
 generates:
   ./__generated__/types.ts:
     plugins:
-      - add: '/* tslint:disable */'
-      - add: '// This file was automatically generated and should not be edited.'
-      - add: import ResolverContext from '../ResolverContext';
-      - add: import * as Scalars from '../scalars';
-      - typescript-common
-      - typescript-server
+      - add:
+          placement: 'prepend'
+          content: |+
+            /* tslint:disable */
+            // This file was automatically generated and should not be edited.
+            import ResolverContext from '../ResolverContext';
+            import * as ScalarTypes from '../types/scalars';
+      - typescript
       - typescript-resolvers
     config:
       contextType: ResolverContext
       scalars:
-        GooglePerson: Scalars.GooglePerson
-        TrimmedString: string
-      enums:
-        AccountType: ../scalars#AccountType
+        GooglePerson: ScalarTypes.GooglePerson
+        TrimmedString: ScalarTypes.TrimmedString
+      enumValues: ../types/enums
       mappers:
-        Account: ../types#Account
-        Contact: ../types#Contact
+        Account: ../types/nodes#Account
+        Contact: ../types/nodes#Contact
   ./__generated__/schema.ts:
     plugins:
-      - add: '/* tslint:disable */'
-      - add: '// This file was automatically generated and should not be edited.'
-      - add: "import {gql} from 'apollo-server-koa';"
-      - add: 'export default gql`'
+      - add:
+          placement: 'prepend'
+          content: |+
+            /* tslint:disable */
+            // This file was automatically generated and should not be edited.
+            import {gql} from 'apollo-server-koa';
+            export default gql`
       - schema-ast
-      - add: '`;'
+      - add:
+          placement: 'content'
+          content: "`;\n"

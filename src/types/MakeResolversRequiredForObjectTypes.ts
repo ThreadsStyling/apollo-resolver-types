@@ -12,8 +12,8 @@ import KeyOf from './KeyOf';
  *
  * And makes all fields that need resolvers have required resolvers
  */
-type MakeResolversRequiredForObjectTypes<IResolvers> = {
-  [Key in string & KeyOf<IResolvers>]: ObjectResolversType<Exclude<IResolvers[Key], undefined>>;
+type MakeResolversRequiredForObjectTypes<Resolvers> = {
+  [Key in string & KeyOf<Resolvers>]: ObjectResolversType<Exclude<Resolvers[Key], undefined>>;
 };
 
 export default MakeResolversRequiredForObjectTypes;

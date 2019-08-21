@@ -7,9 +7,4 @@ export interface GooglePerson {
   whatever: number;
 }
 
-export enum AccountType {
-  EMAIL = 'EMAIL',
-  INSTAGRAM_USERNAME = 'INSTAGRAM_USERNAME',
-  PHONE_NUMBER = 'PHONE_NUMBER',
-  GENERIC_ID = 'GENERIC_ID',
-}
+export type TrimmedString = string;

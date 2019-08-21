@@ -11,6 +11,7 @@ const start = Date.now();
 
 const args = process.argv.slice(3);
 const watch = args.includes('-w') || args.includes('--watch');
+const silent = args.includes('-s') || args.includes('--silent');
 const help = args.includes('-h') || args.includes('--help');
 let configFileName = process.argv[2];
 
@@ -49,8 +50,9 @@ if (config.generates) {
 const gqlArgs = ['--config', basename(configFileName)];
 
 if (watch) gqlArgs.push('--watch');
+if (silent) gqlArgs.push('--silent');
 
-spawn(require.resolve('.bin/gql-gen'), gqlArgs, {
+spawn(require.resolve('.bin/graphql-codegen'), gqlArgs, {
   stdio: 'inherit',
   cwd: dirname(configFileName),
 }).on('exit', (code) => {
@@ -58,7 +60,9 @@ spawn(require.resolve('.bin/gql-gen'), gqlArgs, {
     process.exit(code);
   } else {
     const end = Date.now();
-    console.info(`🚀 Generated GraphQL schema in ${ms(end - start)}`);
+    if (!silent) {
+      console.info(`🚀 Generated GraphQL schema in ${ms(end - start)}`);
+    }
   }
 });
 

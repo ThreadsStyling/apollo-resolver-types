@@ -1,4 +1,5 @@
-import {GooglePerson, AccountType} from './scalars';
+import {AccountType} from './enums';
+import {GooglePerson} from './scalars';
 
 export interface Contact {
   id: number;

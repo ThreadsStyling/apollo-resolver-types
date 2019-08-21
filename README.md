@@ -24,7 +24,7 @@ To setup a graphql server with strong types you will need the following:
 import ApolloResolverTypes from '@threads/apollo-resolver-types';
 import * as GeneratedTypes from './__generated__/types';
 
-type ResolverTypes = ApolloResolverTypes<GeneratedTypes.IResolvers>;
+type ResolverTypes = ApolloResolverTypes<GeneratedTypes.Resolvers>;
 export default ResolverTypes;
 ```
 
@@ -49,7 +49,7 @@ Sometimes you might be unclear on why a given resolver is required. You might th
 import * as GeneratedTypes from './__generated__/types';
 import {DebugResolver} from '@threads/apollo-resolver-types';
 
-type X = DebugResolver<GeneratedTypes.IResolvers['Contact'], 'accounts'>;
+type X = DebugResolver<GeneratedTypes.Resolvers['Contact'], 'accounts'>;
 ```
 
 You can then hover over X and you should see something like:

@@ -8,7 +8,7 @@ import ScalarTypes from './types/ScalarTypes';
  * Take a resolvers config where everything is optional, and mark things as
  * required if they are needed.
  */
-type Resolvers<IResolvers> = TypeFieldResolvers<IResolvers> & ScalarTypes<IResolvers>;
+type Resolvers<TResolvers> = TypeFieldResolvers<TResolvers> & ScalarTypes<TResolvers>;
 export default Resolvers;
 
 /**

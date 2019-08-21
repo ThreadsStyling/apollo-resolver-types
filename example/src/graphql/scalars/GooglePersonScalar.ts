@@ -1,5 +1,5 @@
 import {GraphQLScalarType} from 'graphql';
-import {GooglePerson} from '../scalars';
+import {GooglePerson} from '../types/scalars';
 
 function validate(value: any): GooglePerson {
   if (value == null || typeof value !== 'object') {
