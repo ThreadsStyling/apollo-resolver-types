@@ -6,8 +6,8 @@ import MakePropsRequired from './MakePropsRequired';
  * Take the resolvers and extract just the object type resolvers, marking any
  * that are needed as required
  */
-type ExtractObjectResolverConfig<IResolvers> = ExtractPropsWithType<
-  MakePropsRequired<IResolvers>,
+type ExtractObjectResolverConfig<Resolvers> = ExtractPropsWithType<
+  MakePropsRequired<Resolvers>,
   IResolverObject<any, any>
 >;
 export default ExtractObjectResolverConfig;

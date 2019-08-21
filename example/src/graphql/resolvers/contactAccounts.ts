@@ -1,5 +1,5 @@
 import ResolverTypes from '../ResolverTypes';
-import {AccountType} from '../scalars';
+import {AccountType} from '../types/enums';
 
 const contactAccounts: ResolverTypes['Contact']['accounts'] = async (contact) => {
   if (contact.id !== 1) {

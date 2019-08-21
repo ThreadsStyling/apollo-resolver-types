@@ -1,7 +1,7 @@
 import * as ta from 'type-assertions';
 import ExtractObjectResolverConfig from './ExtractObjectResolverConfig';
 
-type IResolvers = {
+type Resolvers = {
   Query?: {
     contacts?: (
       parent: {foo: string; baz: string | null},
@@ -15,7 +15,7 @@ type IResolvers = {
 
 ta.assert<
   ta.Equal<
-    ExtractObjectResolverConfig<IResolvers>,
+    ExtractObjectResolverConfig<Resolvers>,
     {
       Query: {
         contacts?: (
