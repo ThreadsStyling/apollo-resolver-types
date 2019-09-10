@@ -2,6 +2,9 @@
   "name": "@threads/apollo-resolver-types",
   "description": "Strong typing for apollo resolvers",
   "main": "lib/index.js",
+  "files": [
+    "lib/"
+  ],
   "bin": {
     "apollo-resolver-types": "./lib/cli.js"
   },
