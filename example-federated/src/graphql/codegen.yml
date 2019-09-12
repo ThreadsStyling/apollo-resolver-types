@@ -1,0 +1,21 @@
+# Config for graphql-code-generator
+
+schema: ./schema.graphql
+overwrite: true
+generates:
+  ./__generated__/types.ts:
+    plugins:
+      - add:
+          placement: 'prepend'
+          content: |+
+            /* tslint:disable */
+            // This file was automatically generated and should not be edited.
+            import ResolverContext from '../ResolverContext';
+      - typescript
+      - typescript-resolvers
+    config:
+      federation: true
+      contextType: ResolverContext
+      mappers:
+        User: ../types/nodes#User
+        Sale: ../types/nodes#Sale

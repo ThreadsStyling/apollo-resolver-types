@@ -1,0 +1,12 @@
+{
+  "name": "example",
+  "private": true,
+  "scripts": {
+    "schema": "node ../lib/cli src/graphql/codegen.yml --schema-output src/graphql/__generated__/schema.ts",
+    "build": "tsc",
+    "start": "node lib"
+  },
+  "dependencies": {
+    "typescript": "^3.5.3"
+  }
+}

@@ -2,7 +2,7 @@
 
 import {spawn} from 'child_process';
 import {resolve, basename, dirname} from 'path';
-import {readFileSync} from 'fs';
+import {readFileSync, writeFileSync} from 'fs';
 import {safeLoad} from 'js-yaml';
 import {sync as mkdirp} from 'mkdirp';
 import ms from 'ms';
@@ -13,6 +13,8 @@ const args = process.argv.slice(3);
 const watch = args.includes('-w') || args.includes('--watch');
 const silent = args.includes('-s') || args.includes('--silent');
 const help = args.includes('-h') || args.includes('--help');
+const schemaIndex = Math.max(args.indexOf('-o'), args.indexOf('--schema-output'));
+const schemaOutput = schemaIndex === -1 ? undefined : args[schemaIndex + 1];
 let configFileName = process.argv[2];
 
 if (help) {
@@ -52,6 +54,15 @@ const gqlArgs = ['--config', basename(configFileName)];
 if (watch) gqlArgs.push('--watch');
 if (silent) gqlArgs.push('--silent');
 
+function countMatches(src: string, regex: RegExp) {
+  let count = 0;
+  src.replace(regex, (_) => {
+    count++;
+    return _;
+  });
+  return count;
+}
+
 spawn(require.resolve('.bin/graphql-codegen'), gqlArgs, {
   stdio: 'inherit',
   cwd: dirname(configFileName),
@@ -59,6 +70,36 @@ spawn(require.resolve('.bin/graphql-codegen'), gqlArgs, {
   if (code) {
     process.exit(code);
   } else {
+    // workaround for https://github.com/dotansimha/graphql-code-generator/issues/2541
+    if (config.generates) {
+      Object.keys(config.generates).forEach((filename) => {
+        const original = readFileSync(resolve(dirname(configFileName), filename), 'utf8');
+        let src = original;
+        if (countMatches(src, /\bGraphQLScalarType\b/g) === 1) {
+          src = src.replace(/, *GraphQLScalarType\b/g, '');
+        }
+        if (countMatches(src, /\bGraphQLScalarTypeConfig\b/g) === 1) {
+          src = src.replace(/, *GraphQLScalarTypeConfig\b/g, '');
+        }
+        if (src !== original) {
+          writeFileSync(resolve(dirname(configFileName), filename), src);
+        }
+      });
+    }
+
+    if (schemaOutput) {
+      writeFileSync(
+        schemaOutput,
+        `/* tslint:disable */
+// This file was automatically generated and should not be edited.
+import {gql} from 'apollo-server-koa';
+export default gql\`
+${readFileSync(resolve(dirname(configFileName), config.schema), 'utf8')}
+\`;
+`,
+      );
+    }
+
     const end = Date.now();
     if (!silent) {
       console.info(`🚀 Generated GraphQL schema in ${ms(end - start)}`);
@@ -70,6 +111,8 @@ function usage() {
   console.info('Usage: apollo-resolver-types codegen-config.yml [options]');
   console.info('');
   console.info('Options:');
-  console.info('  -w, --watch          Watch for changes and execute generation automatically');
+  console.info('  -w, --watch                Watch for changes and execute generation automatically');
+  console.info('  -s, --silent               Do not log progress to the concole');
+  console.info('  -o, --schema-output <path> Output schema wrapped in gql tags');
   console.info('');
 }

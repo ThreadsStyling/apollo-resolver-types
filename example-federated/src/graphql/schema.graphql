@@ -1,0 +1,15 @@
+type Sale @key(fields: "id") {
+  id: ID!
+  name: String
+  seller: User
+}
+
+extend type User @key(fields: "id") {
+  id: ID! @external
+  sales: [Sale]
+  numberOfSales: Int
+}
+
+extend type Query {
+  sales: [Sale]
+}
