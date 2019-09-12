@@ -1,6 +1,7 @@
 import Koa = require('koa');
 import {ApolloServer} from 'apollo-server-koa';
 import compress = require('koa-compress');
+import {buildFederatedSchema} from '@apollo/federation';
 
 import typeDefs from './__generated__/schema';
 import ResolverTypes from './ResolverTypes';
@@ -32,8 +33,10 @@ export const resolvers: ResolverTypes = {
 };
 
 const server = new ApolloServer({
-  typeDefs,
-  resolvers: resolvers as any,
+  schema: buildFederatedSchema({
+    typeDefs,
+    resolvers,
+  }),
   context: ({ctx}) => new ResolverContext(ctx),
   playground: {
     endpoint: '/graphql',

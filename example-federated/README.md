@@ -14,19 +14,65 @@ yarn start
 
 You can then run a query like:
 
-```
-query {
-  contacts {
-    name
-    accounts {
-      value
-      type
+```graphql
+query foo($entities: [_Any!]!) {
+  _service {
+    sdl
+  }
+  _entities(representations: $entities) {
+    __typename
+    ... on Sale {
+      id
+      seller {
+        id
+      }
+    }
+  }
+  sales {
+    id
+    seller {
+      id
     }
   }
 }
 ```
 
-in the graphiql editor at `http://localhost:3000/graphql`.
+with variables:
+
+```json
+{"entities": [{"__typename": "Sale", "id": "s1"}]}
+```
+
+in the graphiql editor at `http://localhost:3000/graphql` and get a result that looks like:
+
+```json
+{
+  "data": {
+    "_service": {
+      "sdl": "extend type Query {\n  sales: [Sale]\n}\n\ntype Sale @key(fields: \"id\") {\n  id: ID!\n  name: String\n  seller: User\n}\n\nextend type User @key(fields: \"id\") {\n  id: ID! @external\n  sales: [Sale]\n  numberOfSales: Int\n}\n"
+    },
+    "_entities": [
+      {
+        "__typename": "Sale",
+        "id": "s1",
+        "seller": {
+          "id": "u1"
+        }
+      }
+    ],
+    "sales": [
+      {
+        "id": "s1",
+        "seller": {
+          "id": "u1"
+        }
+      }
+    ]
+  }
+}
+```
+
+The `_` prefixed fields are used by apollo's federation server.
 
 Project structure:
 

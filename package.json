@@ -44,6 +44,7 @@
     ]
   },
   "devDependencies": {
+    "@apollo/federation": "^0.9.4",
     "@commitlint/cli": "^8.1.0",
     "@threads/tsconfig": "^1.0.0",
     "@types/js-yaml": "^3.12.1",
