@@ -1,4 +1,5 @@
 import IsGraphAssignable from './IsGraphAssignable';
+import ResolverParentType from './ResolverParentType';
 import ResolverImplicitPropType from './ResolverImplicitPropType';
 import ResolverRequiredValueType from './ResolverRequiredValueType';
 import KeyOf from './KeyOf';
@@ -10,10 +11,11 @@ import KeyOf from './KeyOf';
  */
 type RequiredResolvers<T> = Exclude<
   {
-    [Key in KeyOf<T>]: IsGraphAssignable<
-      ResolverImplicitPropType<T[Key], Key>,
-      ResolverRequiredValueType<T[Key]>
-    > extends true
+    [Key in KeyOf<T>]: Key extends '__resolveReference' // __resolveReference is a special case for federated schemas
+      ? ResolverParentType<T[Key]> extends ResolverRequiredValueType<T[Key]>
+        ? never // `@keys directive specifies all the required fields, no need to add __resolveReference
+        : Key
+      : IsGraphAssignable<ResolverImplicitPropType<T[Key], Key>, ResolverRequiredValueType<T[Key]>> extends true
       ? never // implicitValue is assignable to expectedValue
       : Key;
   }[KeyOf<T>],
