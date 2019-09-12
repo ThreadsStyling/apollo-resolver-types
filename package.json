@@ -13,7 +13,9 @@
     "lint": "tslint './src/**/*.{ts,tsx}' -t verbose -p .",
     "prettier:write": "prettier --ignore-path .gitignore --write './**/*.{md,json,yml,js,jsx,ts,tsx}'",
     "prettier:check": "prettier --ignore-path .gitignore --list-different './**/*.{md,json,yml,js,jsx,ts,tsx}'",
-    "test": "rimraf example/node_modules && rimraf example/lib && rimraf example/src/graphql/__generated__ && cd example && yarn schema && yarn && yarn build"
+    "test": "yarn test:normal && yarn test:federated",
+    "test:normal": "rimraf example/node_modules && rimraf example/lib && rimraf example/src/graphql/__generated__ && cd example && yarn schema && yarn && yarn build",
+    "test:federated": "rimraf example-federated/node_modules && rimraf example-federated/lib && rimraf example-federated/src/graphql/__generated__ && cd example-federated && yarn schema && yarn && yarn build"
   },
   "repository": {
     "type": "git",
