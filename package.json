@@ -71,11 +71,11 @@
     "graphql": "^14.4.2"
   },
   "dependencies": {
-    "@graphql-codegen/add": "1.7.1-alpha-7b019298.41",
-    "@graphql-codegen/cli": "1.7.1-alpha-7b019298.41",
-    "@graphql-codegen/schema-ast": "1.7.1-alpha-7b019298.41",
-    "@graphql-codegen/typescript": "1.7.1-alpha-7b019298.41",
-    "@graphql-codegen/typescript-resolvers": "1.7.1-alpha-7b019298.41",
+    "@graphql-codegen/add": "^1.8.0",
+    "@graphql-codegen/cli": "^1.8.0",
+    "@graphql-codegen/schema-ast": "^1.8.0",
+    "@graphql-codegen/typescript": "^1.8.0",
+    "@graphql-codegen/typescript-resolvers": "^1.8.0",
     "js-yaml": "^3.13.1",
     "mkdirp": "^0.5.1",
     "ms": "^2.1.2"
