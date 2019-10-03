@@ -54,15 +54,6 @@ const gqlArgs = ['--config', basename(configFileName)];
 if (watch) gqlArgs.push('--watch');
 if (silent) gqlArgs.push('--silent');
 
-function countMatches(src: string, regex: RegExp) {
-  let count = 0;
-  src.replace(regex, (_) => {
-    count++;
-    return _;
-  });
-  return count;
-}
-
 spawn(require.resolve('.bin/graphql-codegen'), gqlArgs, {
   stdio: 'inherit',
   cwd: dirname(configFileName),
@@ -70,16 +61,19 @@ spawn(require.resolve('.bin/graphql-codegen'), gqlArgs, {
   if (code) {
     process.exit(code);
   } else {
-    // workaround for https://github.com/dotansimha/graphql-code-generator/issues/2541
+    // workaround for https://github.com/dotansimha/graphql-code-generator/issues/2676
     if (config.generates) {
       Object.keys(config.generates).forEach((filename) => {
         const original = readFileSync(resolve(dirname(configFileName), filename), 'utf8');
         let src = original;
-        if (countMatches(src, /\bGraphQLScalarType\b/g) === 1) {
-          src = src.replace(/, *GraphQLScalarType\b/g, '');
-        }
-        if (countMatches(src, /\bGraphQLScalarTypeConfig\b/g) === 1) {
-          src = src.replace(/, *GraphQLScalarTypeConfig\b/g, '');
+        if (/\bReferenceResolver\b/.test(src) && !/\btype ReferenceResolver\b/.test(src)) {
+          src = `export type ReferenceResolver<TResult, TReference, TContext> = ( 
+  reference: TReference, 
+  context: TContext, 
+  info: GraphQLResolveInfo 
+) => Promise<TResult> | TResult;
+${src}
+`;
         }
         if (src !== original) {
           writeFileSync(resolve(dirname(configFileName), filename), src);
