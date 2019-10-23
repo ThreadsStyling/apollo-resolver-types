@@ -6,6 +6,7 @@ import {readFileSync, writeFileSync} from 'fs';
 import {safeLoad} from 'js-yaml';
 import {sync as mkdirp} from 'mkdirp';
 import ms from 'ms';
+import validateSchema from './validateSchema';
 
 const start = Date.now();
 
@@ -41,6 +42,18 @@ try {
 }
 
 const config = safeLoad(configSrc!, {filename: configFileName});
+if (typeof config.schema !== 'string') {
+  console.error('Expected config.schema to be a filename');
+  process.exit(1);
+}
+const {source: schemaString} = validateSchema(
+  resolve(dirname(configFileName), config.schema),
+  (config.generates &&
+    Object.keys(config.generates).some(
+      (key) => config.generates[key].config && config.generates[key].config.federation,
+    )) ||
+    false,
+);
 
 if (config.generates) {
   Object.keys(config.generates).forEach((filename) => {
@@ -88,7 +101,7 @@ ${src}
 // This file was automatically generated and should not be edited.
 import {gql} from 'apollo-server-koa';
 export default gql\`
-${readFileSync(resolve(dirname(configFileName), config.schema), 'utf8')}
+${schemaString}
 \`;
 `,
       );
