@@ -86,6 +86,7 @@ function startSchemaWatcher() {
     try {
       try {
         running = true;
+        queued = false;
         await (currentGeneratePromise = generate(config, schemaFileName, Date.now()));
       } finally {
         running = false;
