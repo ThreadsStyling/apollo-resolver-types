@@ -5,6 +5,7 @@ import {parse, DocumentNode} from 'graphql/language';
 import {validateSDL} from 'graphql/validation/validate';
 import {codeFrameColumns} from '@babel/code-frame';
 import ExpectedError from './ExpectedError';
+import chalk from 'chalk';
 
 const federationSpec = `scalar _FieldSet
 directive @external on FIELD_DEFINITION
@@ -18,7 +19,9 @@ export default function validateSchema(filename: string, isFederated: boolean): 
     schemaString = readFileSync(filename, 'utf8');
   } catch (ex) {
     if (ex.code === 'ENOENT') {
-      throw new ExpectedError(`Could not find the schema at ${relative(process.cwd(), filename)}`);
+      throw new ExpectedError(
+        `${chalk.red(`Could not find the schema at`)} ${chalk.cyan(relative(process.cwd(), filename))}`,
+      );
     }
     throw ex;
   }
@@ -28,7 +31,8 @@ export default function validateSchema(filename: string, isFederated: boolean): 
     parsedSchema = parse(isFederated ? federationSpec + schemaString : schemaString);
   } catch (ex) {
     throw new ExpectedError(
-      `GraphQL syntax error in ${relative(process.cwd(), filename)}:\n\n` + formatError(ex, schemaString, isFederated),
+      `${chalk.red(`GraphQL syntax error in`)} ${chalk.cyan(relative(process.cwd(), filename))}${chalk.red(`:`)}\n\n` +
+        formatError(ex, schemaString, isFederated),
     );
   }
 
@@ -49,8 +53,9 @@ export default function validateSchema(filename: string, isFederated: boolean): 
   const errors = validateSDL(parsedSchema);
   if (errors.length) {
     throw new ExpectedError(
-      `GraphQL schema ${errors.length > 1 ? 'errors' : 'error'} in ${relative(process.cwd(), filename)}:\n\n` +
-        errors.map((e) => formatError(e, schemaString, isFederated)).join('\n'),
+      `${chalk.red(`GraphQL schema ${errors.length > 1 ? 'errors' : 'error'} in`)} ${chalk.cyan(
+        relative(process.cwd(), filename),
+      )}${chalk.red(`:`)}\n\n` + errors.map((e) => formatError(e, schemaString, isFederated)).join('\n'),
     );
   }
 

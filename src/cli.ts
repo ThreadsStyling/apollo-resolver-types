@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
 import {spawn} from 'child_process';
-import {resolve, basename, dirname} from 'path';
+import {resolve, basename, dirname, relative} from 'path';
 import {readFileSync, writeFileSync} from 'fs';
 import {safeLoad} from 'js-yaml';
 import {sync as mkdirp} from 'mkdirp';
 import ms from 'ms';
 import sane from 'sane';
+import chalk from 'chalk';
 import validateSchema from './validateSchema';
 import ExpectedError from './ExpectedError';
 
@@ -69,7 +70,7 @@ function startSchemaWatcher() {
     } else {
       console.error(ex.stack);
     }
-    console.error('Waiting for changes');
+    console.error('Waiting for GraphQL config changes');
     return () => Promise.resolve();
   }
   let running = false;
@@ -96,7 +97,7 @@ function startSchemaWatcher() {
         console.error(ex.stack);
       }
     }
-    console.error('Waiting for changes');
+    console.error('Waiting for GraphQL schema changes');
     // tslint:disable-next-line:no-floating-promises
     if (queued) onConfig();
   };
@@ -117,12 +118,14 @@ function loadConfig() {
   try {
     configSrc = readFileSync(configFileName, 'utf8');
   } catch (ex) {
-    throw new ExpectedError('Could not find config at ' + configFileName);
+    throw new ExpectedError(
+      chalk.red('Could not find config at ') + chalk.cyan(relative(process.cwd(), configFileName)),
+    );
   }
 
   const config = safeLoad(configSrc!, {filename: configFileName});
   if (typeof config.schema !== 'string') {
-    throw new ExpectedError('Expected config.schema to be a filename');
+    throw new ExpectedError(chalk.red('Expected config.schema to be a filename'));
   }
   return config;
 }
@@ -157,7 +160,7 @@ async function generate(config: any, schemaFileName: string, start: number) {
       .on('exit', resolvePromise);
   });
   if (code) {
-    throw new ExpectedError(`Unable to generate schema`);
+    throw new ExpectedError(chalk.red(`Unable to generate schema`));
   } else {
     // workaround for https://github.com/dotansimha/graphql-code-generator/issues/2676
     if (config.generates) {
