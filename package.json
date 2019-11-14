@@ -82,9 +82,11 @@
     "@graphql-codegen/schema-ast": "^1.8.0",
     "@graphql-codegen/typescript": "^1.8.0",
     "@graphql-codegen/typescript-resolvers": "^1.8.0",
+    "@types/sane": "^2.0.0",
     "js-yaml": "^3.13.1",
     "mkdirp": "^0.5.1",
-    "ms": "^2.1.2"
+    "ms": "^2.1.2",
+    "sane": "^4.1.0"
   },
   "jest": {
     "moduleFileExtensions": [

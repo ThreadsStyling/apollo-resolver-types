@@ -6,9 +6,9 @@ import {readFileSync, writeFileSync} from 'fs';
 import {safeLoad} from 'js-yaml';
 import {sync as mkdirp} from 'mkdirp';
 import ms from 'ms';
+import sane from 'sane';
 import validateSchema from './validateSchema';
-
-const start = Date.now();
+import ExpectedError from './ExpectedError';
 
 const args = process.argv.slice(3);
 const watch = args.includes('-w') || args.includes('--watch');
@@ -31,48 +31,133 @@ if (!configFileName) {
 
 configFileName = resolve(configFileName);
 
-let configSrc: string | null = null;
-
-try {
-  configSrc = readFileSync(configFileName, 'utf8');
-} catch (ex) {
-  usage();
-  console.error('Could not find config at ' + configFileName);
-  process.exit(1);
-}
-
-const config = safeLoad(configSrc!, {filename: configFileName});
-if (typeof config.schema !== 'string') {
-  console.error('Expected config.schema to be a filename');
-  process.exit(1);
-}
-const {source: schemaString} = validateSchema(
-  resolve(dirname(configFileName), config.schema),
-  (config.generates &&
-    Object.keys(config.generates).some(
-      (key) => config.generates[key].config && config.generates[key].config.federation,
-    )) ||
-    false,
-);
-
-if (config.generates) {
-  Object.keys(config.generates).forEach((filename) => {
-    const dir = dirname(resolve(dirname(configFileName), filename));
-    mkdirp(dir);
+if (watch) {
+  const configWatcher = sane(dirname(configFileName), {glob: basename(configFileName)});
+  let stopSchemaWatcher = () => Promise.resolve();
+  const onConfig = async () => {
+    await stopSchemaWatcher();
+    stopSchemaWatcher = startSchemaWatcher();
+  };
+  configWatcher
+    .on('ready', onConfig)
+    .on('add', onConfig)
+    .on('change', onConfig)
+    .on('delete', onConfig);
+} else {
+  (async () => {
+    const start = Date.now();
+    const config = loadConfig();
+    const schemaFileName = resolve(dirname(configFileName), config.schema);
+    await generate(config, schemaFileName, start);
+  })().catch((ex) => {
+    if (ex.code === 'ExpectedError') {
+      console.error(ex.message);
+    } else {
+      console.error(ex.stack);
+    }
+    process.exit(1);
   });
 }
 
-const gqlArgs = ['--config', basename(configFileName)];
+function startSchemaWatcher() {
+  let config: any;
+  try {
+    config = loadConfig();
+  } catch (ex) {
+    if (ex.code === 'ExpectedError') {
+      console.error(ex.message);
+    } else {
+      console.error(ex.stack);
+    }
+    console.error('Waiting for changes');
+    return () => Promise.resolve();
+  }
+  let running = false;
+  let queued = false;
+  let currentGeneratePromise = Promise.resolve();
+  const schemaFileName = resolve(dirname(configFileName), config.schema);
+  const schemaWatcher = sane(dirname(schemaFileName), {glob: basename(schemaFileName)});
+  const onConfig = async () => {
+    if (running) {
+      queued = true;
+      return;
+    }
+    try {
+      try {
+        running = true;
+        await (currentGeneratePromise = generate(config, schemaFileName, Date.now()));
+      } finally {
+        running = false;
+      }
+    } catch (ex) {
+      if (ex.code === 'ExpectedError') {
+        console.error(ex.message);
+      } else {
+        console.error(ex.stack);
+      }
+    }
+    console.error('Waiting for changes');
+    // tslint:disable-next-line:no-floating-promises
+    if (queued) onConfig();
+  };
+  schemaWatcher
+    .on('ready', onConfig)
+    .on('add', onConfig)
+    .on('change', onConfig)
+    .on('delete', onConfig);
+  return async () => {
+    schemaWatcher.close();
+    await currentGeneratePromise;
+  };
+}
 
-if (watch) gqlArgs.push('--watch');
-if (silent) gqlArgs.push('--silent');
+function loadConfig() {
+  let configSrc: string | null = null;
 
-spawn(require.resolve('.bin/graphql-codegen'), gqlArgs, {
-  stdio: 'inherit',
-  cwd: dirname(configFileName),
-}).on('exit', (code) => {
+  try {
+    configSrc = readFileSync(configFileName, 'utf8');
+  } catch (ex) {
+    throw new ExpectedError('Could not find config at ' + configFileName);
+  }
+
+  const config = safeLoad(configSrc!, {filename: configFileName});
+  if (typeof config.schema !== 'string') {
+    throw new ExpectedError('Expected config.schema to be a filename');
+  }
+  return config;
+}
+
+async function generate(config: any, schemaFileName: string, start: number) {
+  const {source: schemaString} = validateSchema(
+    schemaFileName,
+    (config.generates &&
+      Object.keys(config.generates).some(
+        (key) => config.generates[key].config && config.generates[key].config.federation,
+      )) ||
+      false,
+  );
+
+  if (config.generates) {
+    Object.keys(config.generates).forEach((filename) => {
+      const dir = dirname(resolve(dirname(configFileName), filename));
+      mkdirp(dir);
+    });
+  }
+
+  const gqlArgs = ['--config', basename(configFileName)];
+
+  if (silent) gqlArgs.push('--silent');
+
+  const code = await new Promise<number>((resolvePromise, rejectPromise) => {
+    spawn(require.resolve('.bin/graphql-codegen'), gqlArgs, {
+      stdio: 'inherit',
+      cwd: dirname(configFileName),
+    })
+      .on('error', rejectPromise)
+      .on('exit', resolvePromise);
+  });
   if (code) {
-    process.exit(code);
+    throw new ExpectedError(`Unable to generate schema`);
   } else {
     // workaround for https://github.com/dotansimha/graphql-code-generator/issues/2676
     if (config.generates) {
@@ -112,7 +197,7 @@ ${schemaString}
       console.info(`🚀 Generated GraphQL schema in ${ms(end - start)}`);
     }
   }
-});
+}
 
 function usage() {
   console.info('Usage: apollo-resolver-types codegen-config.yml [options]');
