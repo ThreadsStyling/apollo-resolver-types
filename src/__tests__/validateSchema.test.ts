@@ -1,27 +1,19 @@
 import validateSchema from '../validateSchema';
 
-let errors: string;
-console.error = jest.fn((str: string) => {
-  errors += str + '\n';
-});
-const processExit = jest.fn();
-(process as any).exit = processExit;
-
 function expectError(filename: string, isFederated: boolean) {
-  errors = '';
-  processExit.mockReset();
-
-  validateSchema(filename, isFederated);
-  expect(processExit).toBeCalledTimes(1);
-  expect(processExit).toBeCalledWith(1);
-  return expect(errors);
+  try {
+    validateSchema(filename, isFederated);
+  } catch (ex) {
+    expect(ex.code).toBe('ExpectedError');
+    return expect(require('strip-ansi')(ex.message));
+  }
+  throw new Error('Expected validateSchema to throw');
 }
 
 test('non-existant.graphql', () => {
-  expectError(__dirname + '/non-existant.graphql', false).toMatchInlineSnapshot(`
-    "Could not find the schema at src/__tests__/non-existant.graphql
-    "
-  `);
+  expectError(__dirname + '/non-existant.graphql', false).toMatchInlineSnapshot(
+    `"Could not find the schema at src/__tests__/non-existant.graphql"`,
+  );
 });
 
 test('invalid-schema.graphql', () => {
@@ -46,7 +38,6 @@ test('invalid-schema.graphql', () => {
          |                                          ^
       43 | }
       44 | 
-
     "
   `);
 });
@@ -64,7 +55,6 @@ test('invalid-schema-2.graphql', () => {
       16 |   name: TrimmedString!
       17 |   accounts: [Account!]!
       18 |   google: GooglePerson!
-
     "
   `);
 });
@@ -82,7 +72,6 @@ test('invalid-federated-schema.graphql', () => {
       11 | }
       12 | 
       13 | extend type Query {
-
     "
   `);
 });

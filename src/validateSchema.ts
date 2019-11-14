@@ -4,6 +4,8 @@ import {GraphQLError} from 'graphql/error';
 import {parse, DocumentNode} from 'graphql/language';
 import {validateSDL} from 'graphql/validation/validate';
 import {codeFrameColumns} from '@babel/code-frame';
+import ExpectedError from './ExpectedError';
+import chalk from 'chalk';
 
 const federationSpec = `scalar _FieldSet
 directive @external on FIELD_DEFINITION
@@ -17,8 +19,9 @@ export default function validateSchema(filename: string, isFederated: boolean): 
     schemaString = readFileSync(filename, 'utf8');
   } catch (ex) {
     if (ex.code === 'ENOENT') {
-      console.error(`Could not find the schema at ${relative(process.cwd(), filename)}`);
-      return process.exit(1);
+      throw new ExpectedError(
+        `${chalk.red(`Could not find the schema at`)} ${chalk.cyan(relative(process.cwd(), filename))}`,
+      );
     }
     throw ex;
   }
@@ -27,9 +30,10 @@ export default function validateSchema(filename: string, isFederated: boolean): 
   try {
     parsedSchema = parse(isFederated ? federationSpec + schemaString : schemaString);
   } catch (ex) {
-    console.error(`GraphQL syntax error in ${relative(process.cwd(), filename)}:\n`);
-    printError(ex, schemaString, isFederated);
-    return process.exit(1);
+    throw new ExpectedError(
+      `${chalk.red(`GraphQL syntax error in`)} ${chalk.cyan(relative(process.cwd(), filename))}${chalk.red(`:`)}\n\n` +
+        formatError(ex, schemaString, isFederated),
+    );
   }
 
   if (isFederated) {
@@ -48,34 +52,32 @@ export default function validateSchema(filename: string, isFederated: boolean): 
 
   const errors = validateSDL(parsedSchema);
   if (errors.length) {
-    console.error(
-      `GraphQL schema ${errors.length > 1 ? 'errors' : 'error'} in ${relative(process.cwd(), filename)}:\n`,
+    throw new ExpectedError(
+      `${chalk.red(`GraphQL schema ${errors.length > 1 ? 'errors' : 'error'} in`)} ${chalk.cyan(
+        relative(process.cwd(), filename),
+      )}${chalk.red(`:`)}\n\n` + errors.map((e) => formatError(e, schemaString, isFederated)).join('\n'),
     );
-    for (const e of errors) {
-      printError(e, schemaString, isFederated);
-    }
-    return process.exit(1);
   }
 
   return {source: schemaString};
 }
 
-function printError(
+function formatError(
   e: GraphQLError | {message: string; locations: undefined},
   schemaString: string,
   isFederated: boolean,
 ) {
   if (e.locations && e.locations.length === 1) {
     const [loc] = e.locations;
-    console.error(e.message);
-    console.error(
-      '\n' +
-        codeFrameColumns(schemaString, {
-          start: {line: loc.line - (isFederated ? federationSpec.split('\n').length - 1 : 0), column: loc.column},
-        }) +
-        '\n',
+    return (
+      e.message +
+      '\n\n' +
+      codeFrameColumns(schemaString, {
+        start: {line: loc.line - (isFederated ? federationSpec.split('\n').length - 1 : 0), column: loc.column},
+      }) +
+      '\n'
     );
   } else {
-    console.error(e.message);
+    return e.message;
   }
 }
