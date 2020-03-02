@@ -124,7 +124,7 @@ function loadConfig() {
     );
   }
 
-  const config = safeLoad(configSrc!, {filename: configFileName});
+  const config = safeLoad(configSrc, {filename: configFileName});
   if (typeof config.schema !== 'string') {
     throw new ExpectedError(chalk.red('Expected config.schema to be a filename'));
   }
@@ -163,26 +163,6 @@ async function generate(config: any, schemaFileName: string, start: number) {
   if (code) {
     throw new ExpectedError(chalk.red(`Unable to generate schema`));
   } else {
-    // workaround for https://github.com/dotansimha/graphql-code-generator/issues/2676
-    if (config.generates) {
-      Object.keys(config.generates).forEach((filename) => {
-        const original = readFileSync(resolve(dirname(configFileName), filename), 'utf8');
-        let src = original;
-        if (/\bReferenceResolver\b/.test(src) && !/\btype ReferenceResolver\b/.test(src)) {
-          src = `export type ReferenceResolver<TResult, TReference, TContext> = ( 
-  reference: TReference, 
-  context: TContext, 
-  info: GraphQLResolveInfo 
-) => Promise<TResult> | TResult;
-${src}
-`;
-        }
-        if (src !== original) {
-          writeFileSync(resolve(dirname(configFileName), filename), src);
-        }
-      });
-    }
-
     if (schemaOutput) {
       writeFileSync(
         schemaOutput,
