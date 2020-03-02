@@ -11,7 +11,9 @@ import KeyOf from './KeyOf';
  */
 type RequiredResolvers<T> = Exclude<
   {
-    [Key in KeyOf<T>]: Key extends '__resolveReference' // __resolveReference is a special case for federated schemas
+    [Key in KeyOf<T>]: Key extends '__isTypeOf'
+      ? never
+      : Key extends '__resolveReference' // __resolveReference is a special case for federated schemas
       ? ResolverParentType<T[Key]> extends ResolverRequiredValueType<T[Key]>
         ? never // `@keys directive specifies all the required fields, no need to add __resolveReference
         : Key
