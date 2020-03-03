@@ -20,7 +20,11 @@ type IsGraphAssignable<From, To> = Normalize<
 /**
  * convert all types that are not `true` to `false`
  */
-type Normalize<A extends boolean> = (A extends never ? false : A extends true ? never : false) extends never
+type Normalize<A extends boolean> = (A extends never
+? false
+: A extends true
+? never
+: false) extends never
   ? true
   : false;
 

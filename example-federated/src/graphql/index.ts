@@ -36,8 +36,8 @@ const server = new ApolloServer({
   schema: buildFederatedSchema({
     typeDefs,
     resolvers,
-  }),
-  context: ({ctx}) => new ResolverContext(ctx),
+  } as any),
+  context: ({ctx}: any) => new ResolverContext(ctx),
   playground: {
     endpoint: '/graphql',
   },
