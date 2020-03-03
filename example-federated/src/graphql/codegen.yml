@@ -16,6 +16,7 @@ generates:
     config:
       federation: true
       contextType: ResolverContext
+      typesPrefix: I
       mappers:
         User: ../types/nodes#User
         Sale: ../types/nodes#Sale

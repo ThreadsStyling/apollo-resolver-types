@@ -20,9 +20,10 @@ generates:
         GooglePerson: ScalarTypes.GooglePerson
         TrimmedString: ScalarTypes.TrimmedString
       enumValues: ../types/enums
+      typesPrefix: I
       mappers:
-        Account: ../types/nodes#Account
-        Contact: ../types/nodes#Contact
+        Account: ../types/nodes#Account as DbAccount
+        Contact: ../types/nodes#Contact as DbContact
   ./__generated__/schema.ts:
     plugins:
       - add:
