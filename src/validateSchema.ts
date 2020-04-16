@@ -46,6 +46,43 @@ export default function validateSchema(filename: string, isFederated: boolean): 
         !parsedSchema.definitions.some((d2) => d2.kind === 'ObjectTypeDefinition' && d2.name === d.name)
       ) {
         (d as any).kind = 'ObjectTypeDefinition';
+        if (d.name.value !== 'Query' && d.name.value !== 'Mutation') {
+          const keyDirective = d.directives?.find(($keyDirective) => $keyDirective.name.value === 'key');
+          if (!keyDirective) {
+            throw new ExpectedError(
+              formatCustomError(
+                `To mark ${d.name.value} as "extend", you must add an @key directive.`,
+                d.loc,
+                schemaString,
+                isFederated,
+              ),
+            );
+          }
+          const keyArg = keyDirective.arguments?.find(($keyArg) => $keyArg.name.value === 'fields');
+          if (!keyArg || keyArg.value.kind !== 'StringValue') {
+            throw new ExpectedError(
+              formatCustomError(
+                `The @key directive should have a "fields" argument of type string`,
+                keyDirective.loc,
+                schemaString,
+                isFederated,
+              ),
+            );
+          }
+          const keys = keyArg.value.value.split(',');
+          for (const key of keys) {
+            if (!d.fields?.some((field) => field.name.value === key)) {
+              throw new ExpectedError(
+                formatCustomError(
+                  `The field "${key}" is missing in ${d.name.value}. You can mark it as @external if it comes from another schema, but you must include it to use it in @keys.`,
+                  keyArg.value.loc,
+                  schemaString,
+                  isFederated,
+                ),
+              );
+            }
+          }
+        }
       }
     });
   }
@@ -62,6 +99,35 @@ export default function validateSchema(filename: string, isFederated: boolean): 
   return {source: schemaString};
 }
 
+function formatCustomError(
+  message: string,
+  loc: {start: number; end: number} | undefined,
+  schemaString: string,
+  isFederated: boolean,
+) {
+  if (loc) {
+    const linesStart = schemaString.substr(0, loc.start - (isFederated ? federationSpec.length : 0)).split('\n');
+    const linesEnd = schemaString.substr(0, loc.end - (isFederated ? federationSpec.length : 0)).split('\n');
+
+    return (
+      message +
+      '\n\n' +
+      codeFrameColumns(schemaString, {
+        start: {
+          line: linesStart.length,
+          column: linesStart[linesStart.length - 1].length + 1,
+        },
+        end: {
+          line: linesEnd.length,
+          column: linesEnd[linesEnd.length - 1].length + 1,
+        },
+      }) +
+      '\n'
+    );
+  } else {
+    return message;
+  }
+}
 function formatError(
   e: GraphQLError | {message: string; locations: undefined},
   schemaString: string,
