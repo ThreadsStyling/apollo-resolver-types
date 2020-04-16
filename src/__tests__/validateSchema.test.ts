@@ -4,7 +4,9 @@ function expectError(filename: string, isFederated: boolean) {
   try {
     validateSchema(filename, isFederated);
   } catch (ex) {
-    expect(ex.code).toBe('ExpectedError');
+    if (ex.code !== 'ExpectedError') {
+      throw ex;
+    }
     return expect(require('strip-ansi')(ex.message));
   }
   throw new Error('Expected validateSchema to throw');
@@ -72,6 +74,21 @@ test('invalid-federated-schema.graphql', () => {
       11 | }
       12 | 
       13 | extend type Query {
+    "
+  `);
+});
+
+test('invalid-federated-schema-2.graphql', () => {
+  expectError(__dirname + '/invalid-federated-schema-2.graphql', true).toMatchInlineSnapshot(`
+    "The field \\"id\\" is missing in User. You can mark it as @external if it comes from another schema, but you must include it to use it in @keys.
+
+       5 | }
+       6 | 
+    >  7 | extend type User @key(fields: \\"id\\") {
+         |                               ^^^^
+       8 |   sales: [Sale]
+       9 |   numberOfSales: Int
+      10 | }
     "
   `);
 });
