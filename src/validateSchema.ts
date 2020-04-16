@@ -46,9 +46,7 @@ export default function validateSchema(filename: string, isFederated: boolean): 
         !parsedSchema.definitions.some((d2) => d2.kind === 'ObjectTypeDefinition' && d2.name === d.name)
       ) {
         (d as any).kind = 'ObjectTypeDefinition';
-        if (d.name.value === 'Query' || d.name.value === 'Mutation') {
-          return;
-        } else {
+        if (d.name.value !== 'Query' && d.name.value !== 'Mutation') {
           const keyDirective = d.directives?.find(($keyDirective) => $keyDirective.name.value === 'key');
           if (!keyDirective) {
             throw new ExpectedError(
