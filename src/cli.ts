@@ -3,6 +3,7 @@
 import {spawn} from 'child_process';
 import {resolve, basename, dirname, relative} from 'path';
 import {readFileSync, writeFileSync} from 'fs';
+import {parse, startChain, param, valid} from 'parameter-reducers';
 import {safeLoad} from 'js-yaml';
 import {sync as mkdirp} from 'mkdirp';
 import ms from 'ms';
@@ -11,26 +12,30 @@ import chalk from 'chalk';
 import validateSchema from './validateSchema';
 import ExpectedError from './ExpectedError';
 
-const args = process.argv.slice(3);
-const watch = args.includes('-w') || args.includes('--watch');
-const silent = args.includes('-s') || args.includes('--silent');
-const help = args.includes('-h') || args.includes('--help');
-const schemaIndex = Math.max(args.indexOf('-o'), args.indexOf('--schema-output'));
-const schemaOutput = schemaIndex === -1 ? undefined : args[schemaIndex + 1];
-let configFileName = process.argv[2];
+function requiredParameter(message: string) {
+  usage();
+  console.error(`🚨 ${message}`);
+  return process.exit(1);
+}
+const params = startChain()
+  .addParam(param.flag(['-w', '--watch'], 'watch'))
+  .addParam(param.flag(['-s', '--silent'], 'silent'))
+  .addParam(param.flag(['-h', '--help'], 'help'))
+  .addParam(param.string(['-o', '--schema-output'], 'schemaOutput'))
+  .addParam(param.parsedPositionalString('configFileName', (str) => valid(resolve(str))));
+
+const {
+  watch = false,
+  silent = false,
+  help = false,
+  schemaOutput,
+  configFileName = requiredParameter('Missing config filename'),
+} = parse(params, process.argv.slice(2)).extract();
 
 if (help) {
   usage();
   process.exit(0);
 }
-
-if (!configFileName) {
-  usage();
-  console.error('Missing config');
-  process.exit(1);
-}
-
-configFileName = resolve(configFileName);
 
 if (watch) {
   const configWatcher = sane(dirname(configFileName), {glob: basename(configFileName)});
