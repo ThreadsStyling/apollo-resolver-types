@@ -22,7 +22,7 @@
     "type": "git",
     "url": "git+https://github.com/ThreadsStyling/apollo-resolver-types.git"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
