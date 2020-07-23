@@ -4,13 +4,14 @@ import {spawn} from 'child_process';
 import {resolve, basename, dirname, relative} from 'path';
 import {readFileSync, writeFileSync} from 'fs';
 import {parse, startChain, param, valid} from 'parameter-reducers';
-import {safeLoad} from 'js-yaml';
+import {safeLoad, YAMLException} from 'js-yaml';
 import {sync as mkdirp} from 'mkdirp';
 import ms from 'ms';
 import sane from 'sane';
 import chalk from 'chalk';
 import validateSchema from './validateSchema';
 import ExpectedError from './ExpectedError';
+import {codeFrameColumns} from '@babel/code-frame';
 
 function requiredParameter(message: string) {
   usage();
@@ -129,11 +130,30 @@ function loadConfig() {
     );
   }
 
-  const config = safeLoad(configSrc, {filename: configFileName});
-  if (typeof config.schema !== 'string') {
-    throw new ExpectedError(chalk.red('Expected config.schema to be a filename'));
+  try {
+    const config: any = safeLoad(configSrc, {filename: configFileName});
+    if (!config || typeof config !== 'object') {
+      throw new ExpectedError(
+        chalk.red('Expected config in ') + chalk.cyan(relative(process.cwd(), configFileName)) + ' to be an object.',
+      );
+    }
+    if (typeof config.schema !== 'string') {
+      throw new ExpectedError(chalk.red('Expected config.schema to be a filename'));
+    }
+    return config;
+  } catch (ex) {
+    if (isYamlException(ex)) {
+      throw new ExpectedError(
+        `${chalk.red(`YAML syntax error in`)} ${chalk.cyan(relative(process.cwd(), configFileName))}${chalk.red(`:`)} ${
+          ex.reason
+        }\n\n${codeFrameColumns(ex.mark.buffer, {
+          start: {line: ex.mark.line, column: ex.mark.column},
+        })}\n`,
+      );
+    } else {
+      throw ex;
+    }
   }
-  return config;
 }
 
 async function generate(config: any, schemaFileName: string, start: number) {
@@ -196,4 +216,22 @@ function usage() {
   console.info('  -s, --silent               Do not log progress to the concole');
   console.info('  -o, --schema-output <path> Output schema wrapped in gql tags');
   console.info('');
+}
+
+function isYamlException(
+  ex: unknown,
+): ex is YAMLException & {reason: string; mark: {line: number; column: number; buffer: string}} {
+  if (ex instanceof YAMLException) {
+    const e: any = ex;
+    return (
+      typeof e.reason === 'string' &&
+      e.mark &&
+      typeof e.mark === 'object' &&
+      typeof e.mark.line === 'number' &&
+      typeof e.mark.column === 'number' &&
+      typeof e.mark.line === 'number'
+    );
+  } else {
+    return false;
+  }
 }
