@@ -82,7 +82,8 @@ jobs:
       - image: circleci/node:<< parameters.version >>
     steps:
       - checkout
-      - install
+      - install:
+          node_version: << parameters.version >>
       - build
       - test
 
@@ -110,7 +111,8 @@ jobs:
       - image: circleci/node:<< parameters.version >>
     steps:
       - checkout
-      - install
+      - install:
+          node_version: << parameters.version >>
       - build
       - run:
           name: NPM Auth
@@ -143,21 +145,23 @@ commands:
           command: cat yarn.lock
 
   install:
+    parameters:
+      node_version:
+        type: string
     steps:
       - run:
           name: Versions
           command: node -v && npm -v && yarn -v
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "yarn.lock" }}
-            - v1-dependencies-
+            - v1-dependencies-<< parameters.node_version >>-{{ checksum "yarn.lock" }}
       - run:
           name: Install dependencies
           command: yarn install --frozen-lockfile
       - save_cache:
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "yarn.lock" }}
+          key: v1-dependencies-<< parameters.node_version >>-{{ checksum "yarn.lock" }}
 
   build:
     steps:
