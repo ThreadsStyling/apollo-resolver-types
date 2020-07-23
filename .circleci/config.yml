@@ -1,79 +1,122 @@
-version: 2
+version: 2.1
 
 refs:
-  container: &container
-    docker:
-      - image: 946211468949.dkr.ecr.eu-west-1.amazonaws.com/docker-images/python3-node-ci-v2:latest
-    working_directory: ~/repo
-  steps:
-    - &Authenticate_with_NPM
-      run:
-        name: NPM Auth
-        command: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-    - &Versions
-      run:
-        name: Versions
-        command: node -v && npm -v && yarn -v
-    - &Install
-      run:
-        name: Install Dependencies
-        command: yarn install --frozen-lockfile
-    - &Lint
-      run:
-        name: Lint
-        command: yarn lint && yarn prettier:check
-    - &Build
-      run:
-        name: Build
-        command: yarn build
-    - &Test
-      run:
-        name: Test
-        command: yarn test
+  - &only_master
+    filters:
+      branches:
+        only: master
 
-jobs:
-  all:
-    <<: *container
-    steps:
-      - checkout
-      - *Versions
-      - *Authenticate_with_NPM
-      - *Install
-      - *Lint
-      - *Build
-      - *Test
+  - &not_master
+    filters:
+      branches:
+        ignore: master
+
+workflows:
+  version: 2
+  branch:
+    jobs:
+      - unit-tests:
+          <<: *not_master
+          name: node-10
+          version: '10'
+      - unit-tests:
+          <<: *not_master
+          name: node-12
+          version: '12'
+      - unit-tests:
+          <<: *not_master
+          name: node-14
+          version: '14'
+
+  master:
+    jobs:
+      - unit-tests:
+          <<: *only_master
+          name: node-10
+          version: '10'
+      - unit-tests:
+          <<: *only_master
+          name: node-12
+          version: '12'
+      - unit-tests:
+          <<: *only_master
+          name: node-14
+          version: '14'
+      - publish:
+          <<: *only_master
+          version: '12'
+          context: common-env-vars
+          requires:
+            - node-10
+            - node-12
+            - node-14
 
   nightly:
-    <<: *container
+    triggers:
+      - schedule:
+          cron: '0 1 * * *'
+          <<: *only_master
+    jobs:
+      - nightly:
+          <<: *only_master
+          context: common-env-vars
+          name: nightly-10
+          version: '10'
+      - nightly:
+          <<: *only_master
+          context: common-env-vars
+          name: nightly-12
+          version: '12'
+      - nightly:
+          <<: *only_master
+          context: common-env-vars
+          name: nightly-14
+          version: '14'
+
+jobs:
+  unit-tests:
+    parameters:
+      version:
+        type: string
+    docker:
+      - image: circleci/node:<< parameters.version >>
     steps:
       - checkout
-      - run:
-          name: Remove lock file (we want to test with the latest apollo)
-          command: rm -rf yarn.lock
-      - *Versions
-      - *Authenticate_with_NPM
-      - *Install
-      - run:
-          name: Show yarn.lock
-          command: cat yarn.lock
-      - *Lint
-      - *Build
-      - *Test
+      - install:
+          node_version: << parameters.version >>
+      - build
+      - test
+
+  nightly:
+    parameters:
+      version:
+        type: string
+    docker:
+      - image: circleci/node:<< parameters.version >>
+    steps:
+      - checkout
+      - install_without_lockfile
+      - build
+      - test
       - run:
           name: Post to Slack on FAILURE
           command: 'npx ci-scripts slack --eval --text="*\${PROJECT_NAME}* nightly build failed: \${BUILD_URL}" --icon_emoji=tired_face'
           when: on_fail
 
-  master:
-    <<: *container
+  publish:
+    parameters:
+      version:
+        type: string
+    docker:
+      - image: circleci/node:<< parameters.version >>
     steps:
       - checkout
-      - *Versions
-      - *Authenticate_with_NPM
-      - *Install
-      - *Lint
-      - *Build
-      - *Test
+      - install:
+          node_version: << parameters.version >>
+      - build
+      - run:
+          name: NPM Auth
+          command: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
       - run:
           name: Release
           command: npx semantic-release
@@ -85,33 +128,55 @@ jobs:
           command: 'npx ci-scripts slack --eval --text="*\${PROJECT_NAME}* master build failed: \${BUILD_URL}" --icon_emoji=tired_face'
           when: on_fail
 
-workflows:
-  version: 2
-  all:
-    jobs:
-      - all:
-          context: common-env-vars
-          filters:
-            branches:
-              ignore:
-                - master
-                - gh-pages
+commands:
+  install_without_lockfile:
+    steps:
+      - run:
+          name: Versions
+          command: node -v && npm -v && yarn -v
+      - run:
+          name: Remove lock file (we want to test with the latest apollo)
+          command: rm -rf yarn.lock && rm -rf node_modules
+      - run:
+          name: Install dependencies
+          command: yarn install
+      - run:
+          name: Show yarn.lock
+          command: cat yarn.lock
 
-  master:
-    jobs:
-      - master:
-          context: common-env-vars
-          filters:
-            branches:
-              only: master
+  install:
+    parameters:
+      node_version:
+        type: string
+    steps:
+      - run:
+          name: Versions
+          command: node -v && npm -v && yarn -v
+      - restore_cache:
+          keys:
+            - v1-dependencies-<< parameters.node_version >>-{{ checksum "yarn.lock" }}
+      - run:
+          name: Install dependencies
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-<< parameters.node_version >>-{{ checksum "yarn.lock" }}
 
-  nightly:
-    triggers:
-      - schedule:
-          cron: '0 1 * * *'
-          filters:
-            branches:
-              only: master
-    jobs:
-      - nightly:
-          context: common-env-vars
+  build:
+    steps:
+      - run:
+          name: Build
+          command: yarn build
+
+  test:
+    steps:
+      - run:
+          name: Prettier Check
+          command: yarn prettier:check
+      - run:
+          name: TSLint
+          command: yarn lint
+      - run:
+          name: Test
+          command: yarn test
