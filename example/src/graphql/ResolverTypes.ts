@@ -8,5 +8,5 @@ export default ResolverTypes;
 // To debug why a resolver is "required", uncomment the following
 // two lines and hover over the X:
 
-import {DebugResolver} from '../../../';
-export type X = DebugResolver<ResolverTypes['PartialReturnValue'], 'notRequiredValue'>;
+// import {DebugResolver} from '../../../';
+// export type X = DebugResolver<ResolverTypes['PartialReturnValue'], 'notRequiredValue'>;
