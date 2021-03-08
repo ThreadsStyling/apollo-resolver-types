@@ -24,6 +24,7 @@ generates:
       mappers:
         Account: ../types/nodes#Account as DbAccount
         Contact: ../types/nodes#Contact as DbContact
+        PartialReturnValue: ../types/nodes#PartialReturnValue as DbPartialReturnValue
   ./__generated__/schema.ts:
     plugins:
       - add:

@@ -24,7 +24,7 @@ type Object = {
 
 ta.assert<
   ta.Equal<
-    ObjectResolversType<Object>,
+    ObjectResolversType<Object, 'Key'>,
     {
       foo?: (
         parent: {foo: string; baz: string | null},

@@ -4,6 +4,6 @@ import KeyOf from './KeyOf';
 /**
  * Inverse of RequiredResolvers
  */
-type OptionalResolvers<T> = Exclude<KeyOf<T>, RequiredResolvers<T>>;
+type OptionalResolvers<T, TopKey> = Exclude<KeyOf<T>, RequiredResolvers<T, TopKey>>;
 
 export default OptionalResolvers;

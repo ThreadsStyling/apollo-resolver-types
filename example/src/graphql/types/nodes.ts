@@ -12,3 +12,8 @@ export interface Account {
   type: AccountType;
   value: string;
 }
+
+export interface PartialReturnValue {
+  id: number;
+  notRequiredValue?: string | null;
+}

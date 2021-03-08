@@ -7,6 +7,7 @@ import ResolverTypes from './ResolverTypes';
 
 import contacts from './resolvers/contacts';
 import contactAccounts from './resolvers/contactAccounts';
+import partialReturnValue from './resolvers/partialReturnValue';
 
 import GooglePerson from './scalars/GooglePersonScalar';
 import TrimmedString from './scalars/TrimmedStringScalar';
@@ -22,6 +23,7 @@ const Mutations: ResolverTypes['Mutation'] = {
 export const resolvers: ResolverTypes = {
   Query: {
     contacts,
+    partialReturnValue,
   },
   Contact: {
     accounts: contactAccounts,

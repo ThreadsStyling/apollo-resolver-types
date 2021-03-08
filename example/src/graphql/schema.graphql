@@ -34,8 +34,14 @@ input AccountInput {
   value: TrimmedString!
 }
 
+type PartialReturnValue {
+  id: Int!
+  notRequiredValue: String
+}
+
 type Query {
   contacts: [Contact!]!
+  partialReturnValue(id: Int!): PartialReturnValue!
 }
 
 type Mutation {

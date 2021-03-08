@@ -33,7 +33,7 @@ type Object = {
   ) => Promise<{foo: string; baz: string | null}> | {foo: string; baz: string | null};
 };
 
-ta.assert<ta.Equal<RequiredResolvers<Object>, 'bar' | 'baz'>>();
+ta.assert<ta.Equal<RequiredResolvers<Object, 'Key'>, 'bar' | 'baz'>>();
 
 type RequiresResolveReference = {
   __resolveReference?: (
@@ -43,4 +43,4 @@ type RequiresResolveReference = {
   ) => Promise<{id: number; foo: string; baz: string | null}> | {id: number; foo: string; baz: string | null};
 };
 
-ta.assert<ta.Equal<RequiredResolvers<RequiresResolveReference>, '__resolveReference'>>();
+ta.assert<ta.Equal<RequiredResolvers<RequiresResolveReference, 'Key'>, '__resolveReference'>>();
