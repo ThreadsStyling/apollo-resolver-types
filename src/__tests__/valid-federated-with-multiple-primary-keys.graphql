@@ -1,0 +1,16 @@
+type Sale @key(fields: "id") {
+  id: ID!
+  name: String
+  seller: User
+}
+
+extend type User @key(fields: "id") @key(fields: "netsuiteInternalId") {
+  id: ID! @external
+  netsuiteInternalId: Int
+  sales: [Sale]
+  numberOfSales: Int
+}
+
+extend type Query {
+  sales: [Sale]
+}

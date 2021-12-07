@@ -3,6 +3,8 @@ import {relative} from 'path';
 import {GraphQLError} from 'graphql/error';
 import {parse, DocumentNode} from 'graphql/language';
 import {validateSDL} from 'graphql/validation/validate';
+import {specifiedSDLRules} from 'graphql/validation/specifiedRules';
+import {UniqueDirectivesPerLocationRule} from 'graphql';
 import {codeFrameColumns} from '@babel/code-frame';
 import ExpectedError from './ExpectedError';
 import chalk from 'chalk';
@@ -13,6 +15,9 @@ directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
 directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
 directive @key(fields: _FieldSet!) on OBJECT | INTERFACE
 `;
+
+const OMITTED_VALIDATION_RULES = [UniqueDirectivesPerLocationRule.name];
+
 export default function validateSchema(filename: string, isFederated: boolean): {source: string} {
   let schemaString: string;
   try {
@@ -87,7 +92,8 @@ export default function validateSchema(filename: string, isFederated: boolean): 
     });
   }
 
-  const errors = validateSDL(parsedSchema);
+  const rules = specifiedSDLRules.filter((rule) => !OMITTED_VALIDATION_RULES.includes(rule.name));
+  const errors = validateSDL(parsedSchema, undefined, rules);
   if (errors.length) {
     throw new ExpectedError(
       `${chalk.red(`GraphQL schema ${errors.length > 1 ? 'errors' : 'error'} in`)} ${chalk.cyan(

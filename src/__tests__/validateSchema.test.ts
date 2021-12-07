@@ -12,6 +12,11 @@ function expectError(filename: string, isFederated: boolean) {
   throw new Error('Expected validateSchema to throw');
 }
 
+function expectSuccess(filename: string, isFederated: boolean) {
+  validateSchema(filename, isFederated);
+  return expect(true);
+}
+
 test('non-existant.graphql', () => {
   expectError(__dirname + '/non-existant.graphql', false).toMatchInlineSnapshot(
     `"Could not find the schema at src/__tests__/non-existant.graphql"`,
@@ -91,4 +96,8 @@ test('invalid-federated-schema-2.graphql', () => {
       10 | }
     "
   `);
+});
+
+test('valid-federated-with-multiple-primary-keys.graphql', () => {
+  expectSuccess(__dirname + '/valid-federated-with-multiple-primary-keys.graphql', true).toBeTruthy();
 });
