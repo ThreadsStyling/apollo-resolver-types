@@ -44,7 +44,7 @@ workflows:
           version: '14'
       - publish:
           <<: *only_master
-          version: '12'
+          version: '14'
           context: common-env-vars
           requires:
             - node-10
