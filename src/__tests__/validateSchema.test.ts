@@ -13,12 +13,8 @@ function expectError(filename: string, isFederated: boolean) {
 }
 
 function expectSuccess(filename: string, isFederated: boolean) {
-  try {
-    validateSchema(filename, isFederated);
-    return expect(true);
-  } catch (ex) {
-    throw new Error('Unexpected error while validating schema');
-  }
+  validateSchema(filename, isFederated);
+  return expect(true);
 }
 
 test('non-existant.graphql', () => {
