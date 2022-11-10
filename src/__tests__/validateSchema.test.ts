@@ -101,3 +101,11 @@ test('invalid-federated-schema-2.graphql', () => {
 test('valid-federated-with-multiple-primary-keys.graphql', () => {
   expectSuccess(__dirname + '/valid-federated-with-multiple-primary-keys.graphql', true).toBeTruthy();
 });
+
+test('valid-federated-with-composite-keys.graphql', () => {
+  expectSuccess(__dirname + '/valid-federated-with-composite-keys.graphql', true).toBeTruthy();
+});
+
+test('valid-federated-with-composite-keys-deep.graphql', () => {
+  expectSuccess(__dirname + '/valid-federated-with-composite-keys-deep.graphql', true).toBeTruthy();
+});
