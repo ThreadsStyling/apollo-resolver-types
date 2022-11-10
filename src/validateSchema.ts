@@ -1,13 +1,14 @@
 import {readFileSync} from 'fs';
 import {relative} from 'path';
 import {GraphQLError} from 'graphql/error';
-import {parse, DocumentNode} from 'graphql/language';
+import {parse, DocumentNode, FieldNode} from 'graphql/language';
 import {validateSDL} from 'graphql/validation/validate';
 import {specifiedSDLRules} from 'graphql/validation/specifiedRules';
 import {UniqueDirectivesPerLocationRule} from 'graphql';
 import {codeFrameColumns} from '@babel/code-frame';
 import ExpectedError from './ExpectedError';
 import chalk from 'chalk';
+import {gql} from 'apollo-server-koa';
 
 const federationSpec = `scalar _FieldSet
 directive @external on FIELD_DEFINITION
@@ -17,6 +18,28 @@ directive @key(fields: _FieldSet!) on OBJECT | INTERFACE
 `;
 
 const OMITTED_VALIDATION_RULES = [UniqueDirectivesPerLocationRule.name];
+
+const getKeys = (keyValue: string): string[] | null => {
+  const keyAsQuery = gql`
+  {${keyValue}}
+`;
+
+  const {definitions} = keyAsQuery;
+
+  if (definitions.length !== 1) {
+    return null;
+  }
+
+  const [targetDefinition] = definitions;
+
+  if (targetDefinition.kind !== 'OperationDefinition' || targetDefinition.operation !== 'query') {
+    return null;
+  }
+
+  return targetDefinition.selectionSet.selections
+    .filter((s): s is FieldNode => s.kind === 'Field')
+    .map((s) => s.name.value);
+};
 
 export default function validateSchema(filename: string, isFederated: boolean): {source: string} {
   let schemaString: string;
@@ -74,9 +97,12 @@ export default function validateSchema(filename: string, isFederated: boolean): 
               ),
             );
           }
+
           const keys = keyArg.value.value.split(',');
           for (const key of keys) {
-            if (!d.fields?.some((field) => field.name.value === key)) {
+            const keysToCheck = getKeys(key);
+
+            if (!keysToCheck || !keysToCheck.every((k) => d.fields?.find((field) => field.name.value === k))) {
               throw new ExpectedError(
                 formatCustomError(
                   `The field "${key}" is missing in ${d.name.value}. You can mark it as @external if it comes from another schema, but you must include it to use it in @keys.`,
