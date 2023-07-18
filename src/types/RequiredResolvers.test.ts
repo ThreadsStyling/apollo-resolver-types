@@ -33,7 +33,6 @@ type Object = {
   ) => Promise<{foo: string; baz: string | null}> | {foo: string; baz: string | null};
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 ta.assert<ta.Equal<RequiredResolvers<Object>, 'bar' | 'baz'>>();
 
 type RequiresResolveReference = {

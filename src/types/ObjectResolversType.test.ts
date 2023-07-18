@@ -24,7 +24,6 @@ type Object = {
 
 ta.assert<
   ta.Equal<
-    // eslint-disable-next-line @typescript-eslint/ban-types
     ObjectResolversType<Object>,
     {
       foo?: (
