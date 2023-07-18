@@ -1,18 +1,19 @@
 import Koa = require('koa');
-import {ApolloServer} from 'apollo-server-koa';
+import {ApolloServer} from '@apollo/server';
 import compress = require('koa-compress');
-import {buildFederatedSchema} from '@apollo/federation';
-
 import typeDefs from './__generated__/schema';
 import ResolverTypes from './ResolverTypes';
-
 import sales from './resolvers/sales';
 import saleResolveReference from './resolvers/saleResolveReference';
 import saleSeller from './resolvers/saleSeller';
 import userSales from './resolvers/userSales';
 import userNumberOfSales from './resolvers/userNumberOfSales';
-
 import ResolverContext from './ResolverContext';
+import http from 'http';
+import {koaMiddleware} from '@as-integrations/koa';
+import {ApolloServerPluginDrainHttpServer} from '@apollo/server/plugin/drainHttpServer';
+import {buildSubgraphSchema} from '@apollo/subgraph';
+import {GraphQLResolverMap} from '@apollo/subgraph/dist/schema-helper';
 
 export const resolvers: ResolverTypes = {
   Query: {
@@ -32,24 +33,30 @@ export const resolvers: ResolverTypes = {
   },
 };
 
-const server = new ApolloServer({
-  schema: buildFederatedSchema({
-    typeDefs,
-    resolvers,
-  } as any),
-  context: ({ctx}: any) => new ResolverContext(ctx),
-  playground: {
-    endpoint: '/graphql',
-  },
-});
-
 const graphql = new Koa();
+const httpServer = http.createServer(graphql.callback());
 
-graphql.use(compress());
+const server = new ApolloServer({
+  schema: buildSubgraphSchema({
+    resolvers: resolvers as GraphQLResolverMap<any>,
+    typeDefs: typeDefs,
+  }),
 
-server.applyMiddleware({
-  app: graphql,
-  path: '/',
+  plugins: [ApolloServerPluginDrainHttpServer({httpServer})],
 });
+
+const init = async () => {
+  await server.start();
+
+  graphql.use(compress());
+
+  graphql.use(
+    koaMiddleware(server, {
+      context: async ({ctx}) => new ResolverContext(ctx),
+    }),
+  );
+};
+
+init().catch(console.error);
 
 export default graphql;

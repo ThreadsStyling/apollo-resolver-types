@@ -24,6 +24,7 @@ type Object = {
 
 ta.assert<
   ta.Equal<
+    // eslint-disable-next-line @typescript-eslint/ban-types
     TypeFieldResolvers<{Query?: Object; foo: string}>,
     {
       Query: {

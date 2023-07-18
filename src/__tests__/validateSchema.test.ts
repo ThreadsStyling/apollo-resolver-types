@@ -1,13 +1,14 @@
+import ExpectedError from '../ExpectedError';
 import validateSchema from '../validateSchema';
-
+import stripAnsi from 'strip-ansi';
 function expectError(filename: string, isFederated: boolean) {
   try {
     validateSchema(filename, isFederated);
   } catch (ex) {
-    if (ex.code !== 'ExpectedError') {
+    if ((ex as ExpectedError).code !== 'ExpectedError') {
       throw ex;
     }
-    return expect(require('strip-ansi')(ex.message));
+    return expect(stripAnsi((ex as ExpectedError).message));
   }
   throw new Error('Expected validateSchema to throw');
 }
@@ -27,7 +28,7 @@ test('invalid-schema.graphql', () => {
   expectError(__dirname + '/invalid-schema.graphql', false).toMatchInlineSnapshot(`
     "GraphQL schema errors in src/__tests__/invalid-schema.graphql:
 
-    Unknown type \\"Trimmed\\". Did you mean \\"TrimmedString\\"?
+    Unknown type \\"Trimmed\\".
 
       25 | 
       26 | input ContactInput {
@@ -37,7 +38,7 @@ test('invalid-schema.graphql', () => {
       29 |   google: GooglePerson!
       30 | }
 
-    Unknown type \\"Cont\\". Did you mean \\"Int\\", \\"Contact\\", or \\"Account\\"?
+    Unknown type \\"Cont\\". Did you mean \\"Int\\"?
 
       40 | 
       41 | type Mutation {
@@ -53,7 +54,7 @@ test('invalid-schema-2.graphql', () => {
   expectError(__dirname + '/invalid-schema-2.graphql', false).toMatchInlineSnapshot(`
     "GraphQL syntax error in src/__tests__/invalid-schema-2.graphql:
 
-    Syntax Error: Unexpected Name \\"typ\\"
+    Syntax Error: Unexpected Name \\"typ\\".
 
       13 | }
       14 | 

@@ -21,5 +21,5 @@ type Object = {
     info: {a: string},
   ) => Promise<string> | string;
 };
-
+// eslint-disable-next-line @typescript-eslint/ban-types
 ta.assert<ta.Equal<OptionalResolvers<Object>, 'foo'>>();

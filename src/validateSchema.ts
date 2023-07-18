@@ -8,7 +8,7 @@ import {UniqueDirectivesPerLocationRule} from 'graphql';
 import {codeFrameColumns} from '@babel/code-frame';
 import ExpectedError from './ExpectedError';
 import chalk from 'chalk';
-import {gql} from 'apollo-server-koa';
+import {gql} from 'graphql-tag';
 
 const federationSpec = `scalar _FieldSet
 directive @external on FIELD_DEFINITION
@@ -46,7 +46,7 @@ export default function validateSchema(filename: string, isFederated: boolean): 
   try {
     schemaString = readFileSync(filename, 'utf8');
   } catch (ex) {
-    if (ex.code === 'ENOENT') {
+    if ((ex as any).code === 'ENOENT') {
       throw new ExpectedError(
         `${chalk.red(`Could not find the schema at`)} ${chalk.cyan(relative(process.cwd(), filename))}`,
       );
@@ -60,7 +60,7 @@ export default function validateSchema(filename: string, isFederated: boolean): 
   } catch (ex) {
     throw new ExpectedError(
       `${chalk.red(`GraphQL syntax error in`)} ${chalk.cyan(relative(process.cwd(), filename))}${chalk.red(`:`)}\n\n` +
-        formatError(ex, schemaString, isFederated),
+        formatError(ex as GraphQLError, schemaString, isFederated),
     );
   }
 

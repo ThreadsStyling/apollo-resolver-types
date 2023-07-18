@@ -4,11 +4,11 @@ import MakeOptionalWhenNoRequiredResolvers from './MakeOptionalWhenNoRequiredRes
 ta.assert<
   ta.Equal<
     MakeOptionalWhenNoRequiredResolvers<{
-      x: {};
+      x: object;
       y: {a: true};
     }>,
     {
-      x?: {};
+      x?: object;
       y: {a: true};
     }
   >

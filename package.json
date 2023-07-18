@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "lint": "tslint './src/**/*.{ts,tsx}' -t verbose -p .",
+    "lint": "eslint './src/**/*.{ts,tsx}' --fix",
     "prettier:write": "prettier --ignore-path .gitignore --write './**/*.{md,json,yml,js,jsx,ts,tsx}'",
     "prettier:check": "prettier --ignore-path .gitignore --list-different './**/*.{md,json,yml,js,jsx,ts,tsx}'",
     "test": "yarn test:unit && yarn test:normal && yarn test:federated",
@@ -32,7 +32,7 @@
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
       "prettier --write",
-      "tslint -t verbose -p .",
+      "eslint -c .eslintrc.js",
       "git add"
     ],
     "example/**/*.{ts,tsx}": [
@@ -46,6 +46,7 @@
   },
   "devDependencies": {
     "@apollo/federation": "^0.9.4",
+    "@apollo/server": "^4.7.0",
     "@commitlint/cli": "^8.1.0",
     "@threads/tsconfig": "^1.0.0",
     "@types/babel__code-frame": "^7.0.1",
@@ -56,8 +57,7 @@
     "@types/koa-mount": "^4.0.0",
     "@types/mkdirp": "^0.5.2",
     "@types/ms": "^0.7.30",
-    "apollo-server-koa": "^2.14.2",
-    "graphql": "^14.5.8",
+    "graphql": "^16.6.0",
     "husky": "^3.0.4",
     "jest": "^24.9.0",
     "koa": "^2.8.1",
@@ -68,23 +68,30 @@
     "rimraf": "^3.0.0",
     "strip-ansi": "^6.0.0",
     "ts-jest": "^24.1.0",
-    "tslint": "^5.18.0",
     "type-assertions": "^1.1.0",
-    "typescript": "^3.9.6"
+    "typescript": "^5.1.6",
+    "eslint": "~8.15.0",
+    "eslint-config-prettier": "8.1.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "@typescript-eslint/eslint-plugin": "^5.36.1",
+    "@typescript-eslint/parser": "^5.36.1"
   },
   "peerDependencies": {
-    "apollo-server-koa": "^2.14.2",
-    "graphql": "^14.4.2"
+    "graphql": "^16.6.0"
   },
   "dependencies": {
+    "@apollo/subgraph": "^2.4.10",
+    "@as-integrations/koa": "^1.1.1",
     "@babel/code-frame": "^7.5.5",
-    "@graphql-codegen/add": "^1.8.0",
-    "@graphql-codegen/cli": "^1.8.0",
-    "@graphql-codegen/schema-ast": "^1.8.0",
-    "@graphql-codegen/typescript": "^1.8.0",
-    "@graphql-codegen/typescript-resolvers": "^1.8.0",
+    "@graphql-codegen/add": "^5.0.0",
+    "@graphql-codegen/cli": "^4.0.1",
+    "@graphql-codegen/schema-ast": "^4.0.0",
+    "@graphql-codegen/typescript": "^4.0.1",
+    "@graphql-codegen/typescript-resolvers": "^4.0.1",
     "@types/sane": "^2.0.0",
+    "apollo-server-koa": "^2.1.0",
     "chalk": "^3.0.0",
+    "graphql-tag": "^2.12.6",
     "js-yaml": "^3.13.1",
     "mkdirp": "^0.5.1",
     "ms": "^2.1.2",

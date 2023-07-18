@@ -31,7 +31,7 @@ generates:
           content: |+
             /* tslint:disable */
             // This file was automatically generated and should not be edited.
-            import {gql} from 'apollo-server-koa';
+            import {gql} from 'graphql-tag';
             export default gql`
       - schema-ast
       - add:

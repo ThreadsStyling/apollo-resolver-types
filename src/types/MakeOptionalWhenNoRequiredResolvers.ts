@@ -13,7 +13,7 @@ import KeyOf from './KeyOf';
  */
 type MakeOptionalWhenNoRequiredResolvers<Base> = Pick<
   Base,
-  {[Key in KeyOf<Base>]: {} extends Base[Key] ? never : Key}[KeyOf<Base>]
+  {[Key in KeyOf<Base>]: object extends Base[Key] ? never : Key}[KeyOf<Base>]
 > &
   Partial<Base>;
 export default MakeOptionalWhenNoRequiredResolvers;

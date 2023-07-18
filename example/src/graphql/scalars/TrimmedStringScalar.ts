@@ -5,8 +5,8 @@ export default new GraphQLScalarType({
 
   description: 'A string that will be trimmed when resolved',
 
-  serialize(value?: string | null): string | null | undefined {
-    return value ? value.trim() : value;
+  serialize(value): string | null | undefined {
+    return value ? (<string>value).trim() : (value as string | null | undefined);
   },
 
   parseLiteral(ast) {
@@ -19,7 +19,7 @@ export default new GraphQLScalarType({
     }
   },
 
-  parseValue(value?: string | null): string | null | undefined {
-    return typeof value === 'string' ? value.trim() : value;
+  parseValue(value): string | null | undefined {
+    return typeof value === 'string' ? (<string>value).trim() : (value as string | null | undefined);
   },
 });

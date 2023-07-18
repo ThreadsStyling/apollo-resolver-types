@@ -71,10 +71,10 @@ function startSchemaWatcher() {
   try {
     config = loadConfig();
   } catch (ex) {
-    if (ex.code === 'ExpectedError') {
-      console.error(ex.message);
+    if ((ex as ExpectedError).code === 'ExpectedError') {
+      console.error((ex as ExpectedError).message);
     } else {
-      console.error(ex.stack);
+      console.error((ex as ExpectedError).stack);
     }
     console.error('Waiting for GraphQL config changes');
     return () => Promise.resolve();
@@ -98,14 +98,14 @@ function startSchemaWatcher() {
         running = false;
       }
     } catch (ex) {
-      if (ex.code === 'ExpectedError') {
-        console.error(ex.message);
+      if ((ex as ExpectedError).code === 'ExpectedError') {
+        console.error((ex as ExpectedError).message);
       } else {
-        console.error(ex.stack);
+        console.error((ex as Error).stack);
       }
     }
     console.error('Waiting for GraphQL schema changes');
-    // tslint:disable-next-line:no-floating-promises
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     if (queued) onConfig();
   };
   schemaWatcher
@@ -193,7 +193,7 @@ async function generate(config: any, schemaFileName: string, start: number) {
         schemaOutput,
         `/* tslint:disable */
 // This file was automatically generated and should not be edited.
-import {gql} from 'apollo-server-koa';
+import {gql} from 'graphql-tag';
 export default gql\`
 ${schemaString}
 \`;
