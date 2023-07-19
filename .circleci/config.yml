@@ -17,21 +17,21 @@ workflows:
     jobs:
       - unit-tests:
           <<: *not_master
-          name: node-16
-          version: '16'
+          name: node-18
+          version: '18.0.0'
 
   master:
     jobs:
       - unit-tests:
           <<: *only_master
-          name: node-16
-          version: '16'
+          name: node-18
+          version: '18.0.0'
       - publish:
           <<: *only_master
-          version: '16'
+          version: '18.0.0'
           context: common-env-vars
           requires:
-            - node-16
+            - node-18
 
   nightly:
     triggers:
@@ -42,8 +42,8 @@ workflows:
       - nightly:
           <<: *only_master
           context: common-env-vars
-          name: nightly-16
-          version: '16'
+          name: nightly-18
+          version: '18.0.0'
 
 jobs:
   unit-tests:
@@ -51,7 +51,7 @@ jobs:
       version:
         type: string
     docker:
-      - image: circleci/node:<< parameters.version >>
+      - image: cimg/node:<< parameters.version >>
     steps:
       - checkout
       - install:
@@ -64,7 +64,7 @@ jobs:
       version:
         type: string
     docker:
-      - image: circleci/node:<< parameters.version >>
+      - image: cimg/node:<< parameters.version >>
     steps:
       - checkout
       - install_without_lockfile
@@ -80,7 +80,7 @@ jobs:
       version:
         type: string
     docker:
-      - image: circleci/node:<< parameters.version >>
+      - image: cimg/node:<< parameters.version >>
     steps:
       - checkout
       - install:
