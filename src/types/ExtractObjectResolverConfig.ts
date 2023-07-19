@@ -1,4 +1,4 @@
-import {IResolverObject} from 'apollo-server-koa';
+import {IResolverObject} from 'graphql-tools';
 import ExtractPropsWithType from './ExtractPropsWithType';
 import MakePropsRequired from './MakePropsRequired';
 

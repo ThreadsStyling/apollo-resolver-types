@@ -21,5 +21,4 @@ type Object = {
     info: {a: string},
   ) => Promise<string> | string;
 };
-
 ta.assert<ta.Equal<OptionalResolvers<Object>, 'foo'>>();

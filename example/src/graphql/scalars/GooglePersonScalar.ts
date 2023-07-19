@@ -16,7 +16,7 @@ function validate(value: any): GooglePerson {
 
 export default new GraphQLScalarType({
   name: 'GooglePerson',
-  serialize(value: GooglePerson | null | undefined): GooglePerson | null | undefined {
+  serialize(value): GooglePerson | null | undefined {
     if (value == null) return null;
     return validate(value);
   },

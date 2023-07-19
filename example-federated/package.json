@@ -7,6 +7,6 @@
     "start": "node lib"
   },
   "dependencies": {
-    "typescript": "^3.5.3"
+    "typescript": "^5.1.6"
   }
 }
