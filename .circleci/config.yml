@@ -17,21 +17,21 @@ workflows:
     jobs:
       - unit-tests:
           <<: *not_master
-          name: node-16
-          version: '16'
+          name: node-18
+          version: '18'
 
   master:
     jobs:
       - unit-tests:
           <<: *only_master
-          name: node-16
-          version: '16'
+          name: node-18
+          version: '18'
       - publish:
           <<: *only_master
-          version: '16'
+          version: '18'
           context: common-env-vars
           requires:
-            - node-16
+            - node-18
 
   nightly:
     triggers:
@@ -42,8 +42,8 @@ workflows:
       - nightly:
           <<: *only_master
           context: common-env-vars
-          name: nightly-16
-          version: '16'
+          name: nightly-18
+          version: '18'
 
 jobs:
   unit-tests:
